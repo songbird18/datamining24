@@ -1,0 +1,16 @@
+This program was written for Data Mining Fall 2024.
+It is our semester project.
+The application is designed to use two different kinds
+of regression to predict exam performance based on
+student life factors which bear a high weight on the
+student's eventual performance.
+Lasso, ridge, and polynomial regression are all
+implemented as part of this project. See our full 
+report for more details.
+
+AUTHORS
+Haoyang Cui - haoyang@ou.edu
+Oluwademilade Jooda - oluwademilade.o.jooda-1@ou.edu
+Chelsea Murray – chelsea.g.murray-1@ou.edu
+Sam Bird - sam.bird@ou.edu
+
