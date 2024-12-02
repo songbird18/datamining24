@@ -1,5 +1,6 @@
 import csv
 import numpy as np
+import pandas as pd
 import os
 
 # Load CSV data into NumPy arrays
@@ -70,6 +71,7 @@ def polynomial_regression(X, y, degree):
     theta = np.linalg.inv(X_poly.T @ X_poly) @ X_poly.T @ y # Normal equation
     return theta
 
+
 def cross_validation_with_theta(X, y, model, model_params, folds=5, y_mean=0, y_std=1):
     fold_size = len(X) // folds
     errors = []
@@ -115,8 +117,20 @@ if __name__ == "models":
     selected_columns = ['Hours_Studied', 'Attendance']  # Replace with your chosen features
     target_column = 'Exam_Score'  # Replace with your target column
     
-    # Load and normalize data
-    X, y = load_data(file_path, selected_columns, target_column)
+    # Load data into a pandas DataFrame
+    data = pd.read_csv(file_path)
+
+    # Perform label encoding for categorical columns
+    categorical_columns = ['Family_Income']  # Adjust as needed
+    for column in categorical_columns:
+        label_map = {value: idx for idx, value in enumerate(sorted(data[column].unique()))}
+        data[column] = data[column].map(label_map)
+    
+    # Select features and target
+    X = data[selected_columns].values
+    y = data[target_column].values
+
+    # Normalize numerical columns (optional, categorical columns remain unaffected)
     X, y, X_mean, X_std, y_mean, y_std = normalize(X, y)
     
     # Train and save theta for Lasso
@@ -168,8 +182,14 @@ def predict(X_input, model, model_params, theta, X_mean, X_std, y_mean, y_std):
     predictions = predictions_normalized * y_std + y_mean
     return predictions
 
+
 # Example input: Hours_Studied and Attendance for a new student
-X_input = np.array([[24, 98]])  # Replace with actual input features
+# X_input = np.array([[23, 84]])  # Replace with actual input features
+X_input = np.array([
+        [24, 98, 1],  # Student 1
+        [15, 75, 1],  # Student 2
+        [25, 90, 2],  # Student 3
+    ]) 
 
 # Predict using Lasso
 predicted_lasso = predict(
@@ -208,3 +228,4 @@ predicted_poly = predict(
     y_mean=y_mean,
     y_std=y_std,
 )
+print("Predicted Exam Score (Polynomial):", predicted_poly)
