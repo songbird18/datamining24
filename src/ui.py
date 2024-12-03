@@ -6,6 +6,8 @@ import os
 import time
 import numpy as np
 import models
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk) 
     
 
 
@@ -61,17 +63,85 @@ def LaunchWindow():
         models.load_single(student)
         training_popup()
         
-        
+    #method for adding a set of student records
     def add_many():
-        f = filedialog.askopenfile(mode='r', filetypes=[("CSV (Comma Separated Values)", "*.csv")])
+        f = filedialog.askopenfilename(filetypes=[("CSV (Comma Separated Values)", "*.csv")])
         if f:
-            print("haha yeah")
-            
-    def predict_one():
-        print("haha yeah")
+            models.load_data(file_path=f, replace=False)
+            training_popup()
+      
+    #popup window in case you try to do predictions without training      
+    def untrained_popup():
+        popup = tk.Toplevel(window)
+        popup.title("Hold on!")
+        msg = tk.Label(popup, text="You haven't trained the models on data yet!")
+        msg.grid(row=0, column=0, padx=5,pady=5)
+        ok = tk.Button(popup, text="OK", command=popup.destroy)
+        ok.grid(row=1, column=1, padx=5, pady=5)
+        
+    #popup window with individual student predictions
+    def popup_predictions(lasso, ridge, poly):
+        popup = tk.Toplevel(window)
+        popup.title("Results")
+        lres = "Model 1 (Lasso Regression): " + str(lasso)
+        rres = "\nModel 2 (Ridge Regression): " + str(ridge)
+        pres = "\nModel 3 (Polynomial Regression): " + str(poly)
+        msg = tk.Label(popup, text=(lres + rres + pres))
+        msg.grid(row=0, column=0, padx=5,pady=5)
+        ok = tk.Button(popup, text="OK", command=popup.destroy)
+        ok.grid(row=1, column=1, padx=5, pady=5)
     
+    #popup window with batch predictions
+    def plot_predictions(lasso, ridge, poly):
+        popup = tk.Toplevel(window)
+        popup.title("Results")
+        # the figure that will contain the plot 
+        figl = plt.figure(1)
+        plt.hist(lasso)
+        figr = plt.figure(2)
+        plt.hist(ridge)
+        figp = plt.figure(3)
+        plt.hist(poly)
+        
+        lc = FigureCanvasTkAgg(figl, popup)
+        rc = FigureCanvasTkAgg(figr, popup)
+        pc = FigureCanvasTkAgg(figp, popup)
+        
+        lt = tk.Label(popup, text="Model 1 (Lasso Regression)")
+        lt.grid(row=0, column=0)
+        lplot = lc.get_tk_widget() 
+        lplot.grid(row=1,column=0)
+        rt = tk.Label(popup, text="Model 2 (Ridge Regression)")
+        rt.grid(row=0, column=1)
+        rplot = rc.get_tk_widget()
+        rplot.grid(row=1,column=1)
+        pt = tk.Label(popup, text="Model 3 (Polynomial Regression)")
+        pt.grid(row=2, column=0)
+        pplot = pc.get_tk_widget()
+        pplot.grid(row=3,column=0)
+    
+        
+    #predict a single student's scores
+    def predict_one():
+        if(models.has_data):
+            student = [rstudye.get(),rattende.get(),rpare.get(),rare.get(),rexte.get(),rsleepe.get(),rpreve.get(),
+                   rmote.get(),riace.get(),rtutore.get(),rfine.get(),rtqe.get(),rste.get(),rpine.get(),
+                   rphyse.get(),rlde.get(),rpede.get(),rdste.get(),rgene.get()]
+            lasso, ridge, poly = models.load_single(student, predicting=True)
+            print(lasso, ridge, poly)
+            popup_predictions(lasso, ridge, poly)
+        else:
+            untrained_popup()
+            
+    #predict batch of student scores
     def predict_many():
-        print("haha yeah")
+        if(models.has_data):
+            f = filedialog.askopenfilename(filetypes=[("CSV (Comma Separated Values)", "*.csv")])
+            lasso, ridge, poly = models.load_data(f, predicting=True)
+            plot_predictions(lasso, ridge, poly)
+        else:
+            untrained_popup()
+            
     
     #create window
     window = tk.Tk()
@@ -342,6 +412,3 @@ def LaunchWindow():
     
     window.mainloop()
     
-
-#TESTING
-LaunchWindow()
