@@ -4,8 +4,8 @@ from tkinter import ttk
 from tkinter import font
 import os
 import time
+import numpy as np
 import models
-#from models import loaddata
     
 
 
@@ -28,42 +28,39 @@ def LaunchWindow():
     def open_about():
         open_file("ABOUT/ABOUT.txt")
         
-    def concat_data():
-        print("haha yeah")
+    #open a top-level window to inform the user as the models retrain
+    def training_popup():
+        popup = tk.Toplevel(window)
+        popup.title("Training")
+        msg = tk.Label(popup, text="Please wait while the model is retrained (this may take a while)...")
+        msg.grid(row=0, column=0, padx=5,pady=5)
+        
+        #train all models with new imported data
+        models.train_all()
+        
+        #when retraining is done, show this
+        msg.config(text="The model has been retrained.")
+        ok = tk.Button(popup, text="OK", command=popup.destroy)
+        ok.grid(row=1, column=1, padx=5, pady=5)
+        window.update_idletasks
+        
+
     
     #method for importing dataset and retraining model
     def get_data():
         f = filedialog.askopenfilename(filetypes=[("CSV (Comma Separated Values)", "*.csv")])
         if f:
-            X, y = models.load_data(file_path=f)
-            newdata.grid_forget()
-            duwt = "Please wait while the model is retrained (this may take a while)..."
-            du.config(text=duwt)
-            dxpad = int((wdw-fnt.measure(duwt))/2)
-            du.grid(row=0,column=0,padx=dxpad,pady=50)
-            #force tkinter to update the window's visuals
-            window.update_idletasks()
-            
-            #train all models with new imported data
-            models.train_all(X, y)
-            
-            #inform user that training is complete
-            duwt = "The model has been retrained."
-            du.config(text=duwt)
-            nxpad = int((wdw-fnt.measure(duwt))/2)
-            du.grid(row=0,column=0,padx=nxpad,pady=50)
-            window.update_idletasks()
-            time.sleep(3)
-            
-            #reset display to default
-            du.config(text=duxp)
-            dxpad = int((wdw-fnt.measure(duxp))/2)
-            du.grid(row=0,column=0,padx=dxpad,pady=50)
-            newdata.grid(row=1,column=0,padx=10,pady=20)
-            window.update_idletasks()
-            
+            models.load_data(file_path=f)
+            training_popup()
+           
+    #method for adding a single student to the records 
     def add_one():
-        print("haha yeah")
+        student = [studye.get(),attende.get(),pare.get(),are.get(),exte.get(),sleepe.get(),preve.get(),
+                   mote.get(),iace.get(),tutore.get(),fine.get(),tqe.get(),ste.get(),pine.get(),
+                   physe.get(),lde.get(),pede.get(),dste.get(),gene.get(),scoree.get()]
+        models.load_single(student)
+        training_popup()
+        
         
     def add_many():
         f = filedialog.askopenfile(mode='r', filetypes=[("CSV (Comma Separated Values)", "*.csv")])
@@ -240,6 +237,7 @@ def LaunchWindow():
     submit.grid(row=10,column=4,padx=10,pady=20)
     
     
+    
     #add many students
     duadd = "Upload a new dataset to add onto the current set."
     da = tk.Label(t4, text=duadd, font=fnt)
@@ -328,7 +326,7 @@ def LaunchWindow():
     rgenp.grid(row=8, column=2, padx=20, pady=5)
     rgene = ttk.Combobox(t5, width=18, values=genset)
     rgene.grid(row=8, column=3, padx=20, pady=5)
-    rsubmit = tk.Button(t5, text="Submit", font=fnt, command=add_one)
+    rsubmit = tk.Button(t5, text="Submit", font=fnt, command=predict_one)
     rsubmit.grid(row=10,column=4,padx=10,pady=20)
     
     

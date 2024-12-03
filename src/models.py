@@ -3,21 +3,82 @@ import numpy as np
 import pandas as pd
 import os
 
+#Define default features and target for UI implementation
+features = ['Hours_Studied', 'Attendance']
+target = 'Exam_Score'
+#Init values for these measures
+lasso_error, theta_lasso, ridge_error, theta_ridge, poly_error, theta_poly = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+#X_mean, X_std, y_mean, y_std = 0.0, 0.0, 0.0, 0.0
+#X and y need to be global if we have functionality to add to them
+X = np.zeros((1, len(features)))
+y = np.zeros((1, 1))
+
+selected_indices = [0]
+target_index = [1]
+
+
+#ADDED BY CHELSEA - Updaters for global variables.
+def update_xy(Xnew, ynew):
+    global X, y
+    X, y = Xnew, ynew
+def update_indices(selected, target):
+    global selected_indices, target_index
+    selected_indices, target_index = selected, target
+def update_stats(Xm, Xs, ym, ys):
+    global X_mean, X_std, y_mean, y_std
+    X_mean, X_std, y_mean, y_std = Xm, Xs, ym, ys
+def update_modelresults(le, lt, re, rt, pe, pt):
+    global lasso_error, theta_lasso, ridge_error, theta_ridge, poly_error, theta_poly
+    lasso_error, theta_lasso, ridge_error, theta_ridge, poly_error, theta_poly = le, lt, re, rt, pe, pt
+
 # Load CSV data into NumPy arrays
-def load_data(file_path, selected_columns, target_column):
+def load_data(file_path, selected_columns=features, target_column=target):
     data = []
     with open(file_path, 'r') as file:
         reader = csv.reader(file)
         headers = next(reader)  # Read the header row
         selected_indices = [headers.index(col) for col in selected_columns]
         target_index = headers.index(target_column)
+        update_indices(selected_indices, target_index)
         
         for row in reader:
             data.append([float(row[i]) if row[i].isdigit() else row[i] for i in selected_indices + [target_index]])
     data = np.array(data, dtype=object)
     X = np.array(data[:, :-1], dtype=float)  # Features
     y = np.array(data[:, -1], dtype=float)  # Target variable
-    return X, y
+    update_xy(X,y)
+    #return X, y
+
+#ADDED BY CHELSEA - For combining new entries onto a data set
+def concat_data(Xnew, ynew):
+    global X, y
+    X = np.vstack((X, Xnew))
+    y = np.concatenate((y, ynew), axis=0)
+    update_xy(X,y)
+    #return X, y
+
+#ADDED BY CHELSEA - For reducing a single student record to the selected features/target,
+#then adding to the overall sets
+#Essentially the above but for a single row without a file source.
+def load_single(input, selected_columns=features, target_column=target):
+    print("target index=",target_index)
+    print("feature indices=",selected_indices)
+    data = [[float(input[i]) if input[i].isdigit() else input[i] for i in selected_indices + [target_index]]]
+    data = np.array(data, dtype=object)
+    Xnew = np.array(data[:, :-1], dtype=float)  # Features
+    ynew = np.array(data[:, -1], dtype=float)  # Target variable
+    concat_data(Xnew, ynew)
+    '''
+    data[0] = [float(input[i]) if input[i].isdigit() else input[i] for i in selected_indices + [target_index]]
+    data = np.array(data, dtype=object)
+    Xnew = np.array(data[:, :-1], dtype=float)  # Features
+    ynew = np.array(data[:, -1], dtype=float)  # Target variable
+    concat_data(Xnew, ynew)
+    '''
+    
+
+
+    
 
 def normalize(X, y):
     """Normalize features and target to have mean 0 and standard deviation 1."""
@@ -108,8 +169,34 @@ def cross_validation_with_theta(X, y, model, model_params, folds=5, y_mean=0, y_
         # Store the last theta (trained on the last fold)
         best_theta = theta
     
-    print(f"Model: {model}, Fold Errors: {errors}")
+    #print(f"Model: {model}, Fold Errors: {errors}")
     return np.mean(errors), best_theta
+
+
+#ADDED BY CHELSEA - Training function for a new dataset
+#(Uses lots of stuff from the original/default training instructions in the if-statement)
+def train_all():
+    Xnorm, ynorm, X_mean, X_std, y_mean, y_std = normalize(X, y)
+    
+    # Train and save theta for Lasso
+    lasso_error, theta_lasso = cross_validation_with_theta(
+        Xnorm, ynorm, model="lasso", model_params={"alpha": 0.1}, y_mean=y_mean, y_std=y_std
+    )
+    print("Lasso Regression Error:", lasso_error)
+    
+    # Train and save theta for Ridge
+    ridge_error, theta_ridge = cross_validation_with_theta(
+        Xnorm, ynorm, model="ridge", model_params={"alpha": 0.1}, y_mean=y_mean, y_std=y_std
+    )
+    print("Ridge Regression Error:", ridge_error)
+    
+    # Train and save theta for Polynomial Regression
+    poly_error, theta_poly = cross_validation_with_theta(
+        Xnorm, ynorm, model="polynomial", model_params={"degree": 2}, y_mean=y_mean, y_std=y_std
+    )
+    print("Polynomial Regression Error:", poly_error)
+    
+
 
 if __name__ == "models":
     # File path and columns
@@ -137,19 +224,19 @@ if __name__ == "models":
     lasso_error, theta_lasso = cross_validation_with_theta(
         X, y, model="lasso", model_params={"alpha": 0.1}, y_mean=y_mean, y_std=y_std
     )
-    print("Lasso Regression Error:", lasso_error)
+    #print("Lasso Regression Error:", lasso_error)
     
     # Train and save theta for Ridge
     ridge_error, theta_ridge = cross_validation_with_theta(
         X, y, model="ridge", model_params={"alpha": 0.1}, y_mean=y_mean, y_std=y_std
     )
-    print("Ridge Regression Error:", ridge_error)
+    #print("Ridge Regression Error:", ridge_error)
     
     # Train and save theta for Polynomial Regression
     poly_error, theta_poly = cross_validation_with_theta(
         X, y, model="polynomial", model_params={"degree": 2}, y_mean=y_mean, y_std=y_std
     )
-    print("Polynomial Regression Error:", poly_error)
+    #print("Polynomial Regression Error:", poly_error)
 
 
 def predict(X_input, model, model_params, theta, X_mean, X_std, y_mean, y_std):
@@ -186,9 +273,9 @@ def predict(X_input, model, model_params, theta, X_mean, X_std, y_mean, y_std):
 # Example input: Hours_Studied and Attendance for a new student
 # X_input = np.array([[23, 84]])  # Replace with actual input features
 X_input = np.array([
-        [24, 98, 1],  # Student 1
-        [15, 75, 1],  # Student 2
-        [25, 90, 2],  # Student 3
+        [24, 98],  # Student 1
+        [15, 75],  # Student 2
+        [25, 90],  # Student 3
     ]) 
 
 # Predict using Lasso
