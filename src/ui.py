@@ -128,7 +128,6 @@ def LaunchWindow():
                    rmote.get(),riace.get(),rtutore.get(),rfine.get(),rtqe.get(),rste.get(),rpine.get(),
                    rphyse.get(),rlde.get(),rpede.get(),rdste.get(),rgene.get()]
             lasso, ridge, poly = models.load_single(student, predicting=True)
-            print(lasso, ridge, poly)
             popup_predictions(lasso, ridge, poly)
         else:
             untrained_popup()

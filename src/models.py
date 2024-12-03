@@ -200,19 +200,16 @@ def train_all():
     lasso_error, theta_lasso = cross_validation_with_theta(
         Xnorm, ynorm, model="lasso", model_params={"alpha": 0.1}, y_mean=y_mean, y_std=y_std
     )
-    print("Lasso Regression Error:", lasso_error)
     
     # Train and save theta for Ridge
     ridge_error, theta_ridge = cross_validation_with_theta(
         Xnorm, ynorm, model="ridge", model_params={"alpha": 0.1}, y_mean=y_mean, y_std=y_std
     )
-    print("Ridge Regression Error:", ridge_error)
     
     # Train and save theta for Polynomial Regression
     poly_error, theta_poly = cross_validation_with_theta(
         Xnorm, ynorm, model="polynomial", model_params={"degree": 2}, y_mean=y_mean, y_std=y_std
     )
-    print("Polynomial Regression Error:", poly_error)
     update_modelresults(lasso_error, theta_lasso, ridge_error, theta_ridge, poly_error, theta_poly)
     global has_data
     has_data = True
@@ -234,8 +231,6 @@ def predict(X_input, model, model_params, theta, X_mean, X_std, y_mean, y_std):
     - Predicted exam score (denormalized)
     """
     # Normalize the input features
-    print(X_mean)
-    print(X_input)
     X_input_normalized = (X_input - X_mean) / X_std
 
     # For polynomial regression, expand features
